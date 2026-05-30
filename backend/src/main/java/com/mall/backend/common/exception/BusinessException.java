@@ -1,0 +1,20 @@
+package com.mall.backend.common.exception;
+
+import com.mall.backend.common.api.ResultCode;
+
+public class BusinessException extends RuntimeException {
+    private final int code;
+
+    public BusinessException(int code, String message) {
+        super(message);
+        this.code = code;
+    }
+
+    public BusinessException(String message) {
+        this(ResultCode.FAIL, message);
+    }
+
+    public int getCode() {
+        return code;
+    }
+}
