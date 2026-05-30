@@ -109,7 +109,7 @@ public class DataInitializer implements CommandLineRunner {
         p1.setPrice(new BigDecimal("3999.00"));
         p1.setStock(120);
         p1.setDescription("高性能旗舰机型，畅享快速体验。");
-        p1.setImageUrl("https://via.placeholder.com/400");
+        p1.setImageUrl("https://picsum.photos/400/400?random=1");
         p1.setStatus(1);
         p1.setDeleted(0);
         p1.setCreateTime(LocalDateTime.now());
@@ -123,7 +123,7 @@ public class DataInitializer implements CommandLineRunner {
         p2.setPrice(new BigDecimal("899.00"));
         p2.setStock(80);
         p2.setDescription("出色降噪效果与长续航。");
-        p2.setImageUrl("https://via.placeholder.com/400");
+        p2.setImageUrl("https://picsum.photos/400/400?random=2");
         p2.setStatus(1);
         p2.setDeleted(0);
         p2.setCreateTime(LocalDateTime.now());
@@ -137,7 +137,7 @@ public class DataInitializer implements CommandLineRunner {
         p3.setPrice(new BigDecimal("1299.00"));
         p3.setStock(50);
         p3.setDescription("强力吸尘，智能规划路径。");
-        p3.setImageUrl("https://via.placeholder.com/400");
+        p3.setImageUrl("https://picsum.photos/400/400?random=3");
         p3.setStatus(1);
         p3.setDeleted(0);
         p3.setCreateTime(LocalDateTime.now());
@@ -151,7 +151,7 @@ public class DataInitializer implements CommandLineRunner {
         p4.setPrice(new BigDecimal("299.00"));
         p4.setStock(150);
         p4.setDescription("舒适透气，百搭款式。");
-        p4.setImageUrl("https://via.placeholder.com/400");
+        p4.setImageUrl("https://picsum.photos/400/400?random=4");
         p4.setStatus(1);
         p4.setDeleted(0);
         p4.setCreateTime(LocalDateTime.now());

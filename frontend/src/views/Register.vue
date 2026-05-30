@@ -1,72 +1,135 @@
 <template>
-  <div class="page">
-    <Navbar />
-    <el-card class="page-card">
-      <h2>注册新会员</h2>
-      <el-form :model="form" :rules="rules" ref="registerForm" label-width="90px">
-        <el-form-item label="用户名" prop="username">
-          <el-input v-model="form.username" placeholder="请输入用户名" />
-        </el-form-item>
-        <el-form-item label="密码" prop="password">
-          <el-input type="password" v-model="form.password" placeholder="请输入密码" />
-        </el-form-item>
-        <el-form-item label="手机号" prop="phone">
-          <el-input v-model="form.phone" placeholder="请输入手机号" />
-        </el-form-item>
-        <el-form-item label="邮箱" prop="email">
-          <el-input v-model="form.email" placeholder="请输入邮箱" />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="submit">注册</el-button>
-          <el-button type="text" @click="goLogin">返回登录</el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+  <div class="register-page">
+    <div class="register-container">
+      <div class="register-card">
+        <h2 class="register-title">用户注册</h2>
+        <el-form :model="form" class="register-form">
+          <el-form-item>
+            <el-input v-model="form.username" placeholder="用户名" size="large" />
+          </el-form-item>
+          <el-form-item>
+            <el-input v-model="form.password" type="password" placeholder="密码" size="large" />
+          </el-form-item>
+          <el-form-item>
+            <el-input v-model="form.confirmPassword" type="password" placeholder="确认密码" size="large" />
+          </el-form-item>
+          <el-form-item>
+            <el-input v-model="form.nickname" placeholder="昵称" size="large" />
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" size="large" class="register-btn" @click="handleRegister" :loading="loading">
+              注册
+            </el-button>
+          </el-form-item>
+          <div class="register-footer">
+            已有账号？<router-link to="/login">立即登录</router-link>
+          </div>
+        </el-form>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
-import Navbar from '@/components/Navbar.vue';
 import { register } from '@/api/auth';
 
 const router = useRouter();
-const form = ref({ username: '', password: '', phone: '', email: '' });
-const registerForm = ref();
-const rules = {
-  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
-  phone: [{ required: true, message: '请输入手机号', trigger: 'blur' }],
-  email: [{ required: true, message: '请输入邮箱', trigger: 'blur' }],
-};
+const loading = ref(false);
+const form = reactive({
+  username: '',
+  password: '',
+  confirmPassword: '',
+  nickname: ''
+});
 
-const submit = () => {
-  registerForm.value.validate(async (valid: boolean) => {
-    if (!valid) return;
-    try {
-      await register(form.value);
-      ElMessage.success('注册成功，请登录');
-      router.push({ name: 'Login' });
-    } catch (err: any) {
-      ElMessage.error(err.response?.data?.message || '注册失败');
-    }
-  });
-};
-
-const goLogin = () => {
-  router.push({ name: 'Login' });
+const handleRegister = async () => {
+  if (!form.username || !form.password || !form.confirmPassword) {
+    ElMessage.warning('请填写所有必填项');
+    return;
+  }
+  
+  if (form.password !== form.confirmPassword) {
+    ElMessage.warning('两次密码输入不一致');
+    return;
+  }
+  
+  loading.value = true;
+  try {
+    await register({
+      username: form.username,
+      password: form.password,
+      nickname: form.nickname || form.username
+    });
+    ElMessage.success('注册成功，请登录');
+    router.push('/login');
+  } catch (error: any) {
+    ElMessage.error(error.response?.data?.message || '注册失败');
+  } finally {
+    loading.value = false;
+  }
 };
 </script>
 
 <style scoped>
-.page {
+.register-page {
   min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
 }
-.page-card {
-  width: 500px;
-  margin: 80px auto;
-  padding: 24px;
+
+.register-card {
+  background: #fff;
+  padding: 40px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.register-title {
+  text-align: center;
+  color: #333;
+  margin-bottom: 32px;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.register-form {
+  margin-top: 20px;
+}
+
+.register-btn {
+  width: 100%;
+  height: 48px;
+  font-size: 16px;
+  background: linear-gradient(to right, #ff5000, #ff6a33);
+  border: none;
+}
+
+.register-btn:hover {
+  background: linear-gradient(to right, #ff6a33, #ff8533);
+}
+
+.register-footer {
+  text-align: center;
+  margin-top: 24px;
+  color: #666;
+  font-size: 14px;
+}
+
+.register-footer a {
+  color: #ff5000;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.register-footer a:hover {
+  text-decoration: underline;
 }
 </style>

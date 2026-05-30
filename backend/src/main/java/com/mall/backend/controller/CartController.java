@@ -51,6 +51,14 @@ public class CartController {
     public Result<?> list() {
         Long userId = UserContext.getUserId();
         List<CartItem> items = cartItemService.list(new QueryWrapper<CartItem>().eq("user_id", userId));
+        items.forEach(item -> {
+            Product product = productService.getById(item.getProductId());
+            if (product != null) {
+                item.setProductName(product.getName());
+                item.setPrice(product.getPrice());
+                item.setImageUrl(product.getImageUrl());
+            }
+        });
         return Result.success(items);
     }
 

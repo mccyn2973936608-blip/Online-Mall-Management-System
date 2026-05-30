@@ -3,7 +3,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:h2:mem:mall_db;DB_CLOSE_DELAY=-1;MODE=MySQL
+    url: jdbc:h2:file:./data/mall_db;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false
     driver-class-name: org.h2.Driver
     username: sa
     password: 
@@ -17,6 +17,7 @@ spring:
     init:
       mode: always
       schema-locations: classpath:db/schema.sql
+      encoding: UTF-8
 
 mybatis-plus:
   configuration:

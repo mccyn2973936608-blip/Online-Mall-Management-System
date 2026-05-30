@@ -60,4 +60,14 @@ public class AuthController {
         data.put("user", user);
         return Result.success(data);
     }
+
+    @GetMapping("/info")
+    public Result<?> getUserInfo() {
+        Long userId = com.mall.backend.common.jwt.UserContext.getUserId();
+        User user = userService.getById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        return Result.success(user);
+    }
 }

@@ -1,383 +1,180 @@
 <template>
-  <header class="navbar">
-    <div class="nav-content">
-      <div class="brand" @click="goHome">
-        <span class="brand-icon">🚀</span>
-        <span class="brand-text">未来商城</span>
-        <div class="brand-glow"></div>
-      </div>
-      
-      <nav class="menu">
-        <button class="nav-item" @click="goHome">
-          <span class="nav-icon">🏠</span>
-          <span>首页</span>
-        </button>
-        <button class="nav-item" @click="goCart">
-          <span class="nav-icon">🛒</span>
-          <span>购物车</span>
-        </button>
-        <button class="nav-item" @click="goOrders">
-          <span class="nav-icon">📦</span>
-          <span>我的订单</span>
-        </button>
-        <button v-if="isAdmin" class="nav-item nav-admin" @click="goAdmin">
-          <span class="nav-icon">⚡</span>
-          <span>管理员</span>
-        </button>
-      </nav>
-      
-      <div class="user-section">
-        <template v-if="!token">
-          <button class="btn-outline" @click="goLogin">登录</button>
-          <button class="btn-primary" @click="goRegister">注册</button>
-        </template>
-        <template v-else>
-          <div class="user-dropdown">
-            <div class="user-btn" @click="showDropdown = !showDropdown">
-              <div class="user-avatar">
-                {{ (user.nickname || user.username)?.charAt(0)?.toUpperCase() || 'U' }}
-              </div>
-              <span class="user-name">{{ user.nickname || user.username }}</span>
-              <span class="dropdown-icon" :class="{ open: showDropdown }">▼</span>
-            </div>
-            <div class="dropdown-menu" :class="{ open: showDropdown }">
-              <div class="dropdown-item" @click="goProfile">
-                <span class="item-icon">👤</span>
-                <span>个人中心</span>
-              </div>
-              <div class="dropdown-divider"></div>
-              <div class="dropdown-item logout-item" @click="logout">
-                <span class="item-icon">🚪</span>
-                <span>退出登录</span>
-              </div>
-            </div>
-          </div>
-        </template>
+  <div>
+    <div class="mall-navbar">
+      <div class="navbar-container">
+        <router-link to="/" class="navbar-brand">
+          <span class="brand-text">商城</span>
+        </router-link>
+        
+        <div class="navbar-search">
+          <el-input
+            v-model="searchKeyword"
+            placeholder="搜索商品"
+            class="search-input"
+            @keyup.enter="handleSearch"
+          >
+            <template #append>
+              <el-button @click="handleSearch" class="search-btn">搜索</el-button>
+            </template>
+          </el-input>
+        </div>
+        
+        <div class="navbar-menu">
+          <router-link to="/" class="menu-item">首页</router-link>
+          <router-link to="/cart" class="menu-item">
+            <el-badge :value="cartCount" :hidden="cartCount === 0" class="cart-badge">
+              <span>购物车</span>
+            </el-badge>
+          </router-link>
+          <router-link v-if="!isLoggedIn" to="/login" class="menu-item">登录</router-link>
+          <router-link v-if="!isLoggedIn" to="/register" class="menu-item">注册</router-link>
+          <el-dropdown v-if="isLoggedIn" @command="handleCommand">
+            <span class="menu-item user-dropdown">
+              {{ username }}
+              <i class="el-icon-arrow-down"></i>
+            </span>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="profile">个人中心</el-dropdown-item>
+                <el-dropdown-item command="orders">我的订单</el-dropdown-item>
+                <el-dropdown-item v-if="isAdmin" command="admin">管理后台</el-dropdown-item>
+                <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+        </div>
       </div>
     </div>
-  </header>
+  </div>
 </template>
 
 <script setup lang="ts">
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/store/user';
-import { computed, ref, onMounted, onUnmounted } from 'vue';
 
 const router = useRouter();
 const userStore = useUserStore();
-const token = computed(() => userStore.token);
-const user = computed(() => userStore.user);
-const isAdmin = computed(() => userStore.role === 1);
-const showDropdown = ref(false);
+const searchKeyword = ref('');
 
-const goHome = () => router.push({ name: 'Home' });
-const goLogin = () => router.push({ name: 'Login' });
-const goRegister = () => router.push({ name: 'Register' });
-const goProfile = () => router.push({ name: 'Profile' });
-const goCart = () => router.push({ name: 'Cart' });
-const goOrders = () => router.push({ name: 'MyOrders' });
-const goAdmin = () => router.push({ name: 'AdminDashboard' });
-const logout = () => {
-  userStore.logout();
-  showDropdown.value = false;
-  router.push({ name: 'Login' });
+const isLoggedIn = computed(() => userStore.isLoggedIn);
+const username = computed(() => userStore.userInfo?.username || '用户');
+const isAdmin = computed(() => userStore.userInfo?.role === 1);
+const cartCount = computed(() => userStore.cartCount || 0);
+
+const handleSearch = () => {
+  if (searchKeyword.value.trim()) {
+    router.push({ path: '/', query: { keyword: searchKeyword.value } });
+  }
 };
 
-const handleClickOutside = (e: Event) => {
-  const target = e.target as HTMLElement;
-  if (!target.closest('.user-dropdown')) {
-    showDropdown.value = false;
+const handleCommand = (command: string) => {
+  switch (command) {
+    case 'profile':
+      router.push('/profile');
+      break;
+    case 'orders':
+      router.push('/orders');
+      break;
+    case 'admin':
+      router.push('/admin');
+      break;
+    case 'logout':
+      userStore.logout();
+      router.push('/login');
+      break;
   }
 };
 
 onMounted(() => {
-  document.addEventListener('click', handleClickOutside);
-});
-
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside);
+  if (isLoggedIn.value) {
+    userStore.fetchUserInfo();
+    userStore.fetchCartCount();
+  }
 });
 </script>
 
 <style scoped>
-.navbar {
-  position: relative;
-  z-index: 100;
-  background: rgba(10, 10, 26, 0.8);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(102, 126, 234, 0.2);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+.mall-navbar {
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
-.nav-content {
-  max-width: 1600px;
+.navbar-container {
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 0 5%;
-  height: 70px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.brand {
   display: flex;
   align-items: center;
-  gap: 12px;
-  cursor: pointer;
-  position: relative;
-  padding: 8px 16px;
-  border-radius: 16px;
-  transition: all 0.3s ease;
+  padding: 16px 20px;
+  gap: 40px;
 }
 
-.brand:hover {
-  background: rgba(102, 126, 234, 0.1);
-}
-
-.brand-icon {
-  font-size: 1.8rem;
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
+.navbar-brand {
+  text-decoration: none;
+  flex-shrink: 0;
 }
 
 .brand-text {
-  font-size: 1.4rem;
-  font-weight: 900;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #00d4ff 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-size: 28px;
+  font-weight: 700;
+  color: #ff5000;
   letter-spacing: 2px;
 }
 
-.brand-glow {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 150%;
-  height: 150%;
-  background: radial-gradient(circle, rgba(102, 126, 234, 0.2) 0%, transparent 70%);
-  transform: translate(-50%, -50%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
+.navbar-search {
+  flex: 1;
+  max-width: 600px;
 }
 
-.brand:hover .brand-glow {
-  opacity: 1;
+.search-input {
+  width: 100%;
 }
 
-.menu {
+.search-input :deep(.el-input__wrapper) {
+  border-radius: 20px 0 0 20px;
+}
+
+.search-input :deep(.el-input-group__append) {
+  border-radius: 0 20px 20px 0;
+  background: #ff5000;
+  border-color: #ff5000;
+  color: white;
+}
+
+.search-btn {
+  background: #ff5000 !important;
+  border-color: #ff5000 !important;
+  color: white !important;
+}
+
+.navbar-menu {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 24px;
 }
 
-.nav-item {
+.menu-item {
+  text-decoration: none;
+  color: #333;
+  font-size: 15px;
+  transition: color 0.3s;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 12px;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
+  gap: 4px;
 }
 
-.nav-item:hover {
-  background: rgba(102, 126, 234, 0.15);
-  border-color: rgba(102, 126, 234, 0.3);
-  color: #fff;
-  transform: translateY(-2px);
-}
-
-.nav-icon {
-  font-size: 1.1rem;
-}
-
-.nav-admin {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
-  border-color: rgba(102, 126, 234, 0.4);
-  color: #667eea;
-}
-
-.nav-admin:hover {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
-  color: #fff;
-}
-
-.user-section {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.btn-outline {
-  padding: 10px 24px;
-  background: transparent;
-  border: 1px solid rgba(102, 126, 234, 0.5);
-  border-radius: 12px;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.btn-outline:hover {
-  background: rgba(102, 126, 234, 0.15);
-  border-color: #667eea;
-  color: #fff;
-  transform: translateY(-2px);
-}
-
-.btn-primary {
-  padding: 10px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: none;
-  border-radius: 12px;
-  color: #fff;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+.menu-item:hover {
+  color: #ff5000;
 }
 
 .user-dropdown {
-  position: relative;
-}
-
-.user-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(102, 126, 234, 0.2);
-  border-radius: 50px;
   cursor: pointer;
-  transition: all 0.3s ease;
 }
 
-.user-btn:hover {
-  background: rgba(102, 126, 234, 0.15);
-  border-color: rgba(102, 126, 234, 0.4);
-}
-
-.user-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-weight: 700;
-  font-size: 0.95rem;
-}
-
-.user-name {
-  color: #fff;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.dropdown-icon {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.7rem;
-  transition: transform 0.3s ease;
-}
-
-.dropdown-icon.open {
-  transform: rotate(180deg);
-}
-
-.dropdown-menu {
-  position: absolute;
-  top: calc(100% + 12px);
-  right: 0;
-  min-width: 200px;
-  background: rgba(10, 10, 26, 0.95);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(102, 126, 234, 0.2);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  padding: 8px;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-10px);
-  transition: all 0.3s ease;
-}
-
-.dropdown-menu.open {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-}
-
-.dropdown-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  border-radius: 12px;
-  color: rgba(255, 255, 255, 0.8);
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.dropdown-item:hover {
-  background: rgba(102, 126, 234, 0.15);
-  color: #fff;
-}
-
-.item-icon {
-  font-size: 1.1rem;
-}
-
-.dropdown-divider {
-  height: 1px;
-  background: rgba(102, 126, 234, 0.2);
-  margin: 8px 0;
-}
-
-.logout-item {
-  color: rgba(255, 71, 87, 0.8);
-}
-
-.logout-item:hover {
-  background: rgba(255, 71, 87, 0.15);
-  color: #ff4757;
-}
-
-@media (max-width: 768px) {
-  .nav-content {
-    padding: 0 16px;
-  }
-  
-  .menu {
-    display: none;
-  }
-  
-  .brand-text {
-    font-size: 1.2rem;
-  }
+.cart-badge :deep(.el-badge__content) {
+  background-color: #ff5000;
 }
 </style>
