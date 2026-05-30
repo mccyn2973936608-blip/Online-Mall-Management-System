@@ -30,6 +30,7 @@
           <router-link v-if="!isLoggedIn" to="/register" class="menu-item">注册</router-link>
           <el-dropdown v-if="isLoggedIn" @command="handleCommand">
             <span class="menu-item user-dropdown">
+              <span class="user-avatar">{{ userInitial }}</span>
               {{ username }}
               <i class="el-icon-arrow-down"></i>
             </span>
@@ -37,7 +38,9 @@
               <el-dropdown-menu>
                 <el-dropdown-item command="profile">个人中心</el-dropdown-item>
                 <el-dropdown-item command="orders">我的订单</el-dropdown-item>
-                <el-dropdown-item v-if="isAdmin" command="admin">管理后台</el-dropdown-item>
+                <el-dropdown-item v-if="isAdmin" command="admin">
+                  <span class="admin-item">🔧 管理后台</span>
+                </el-dropdown-item>
                 <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
               </el-dropdown-menu>
             </template>
@@ -58,8 +61,9 @@ const userStore = useUserStore();
 const searchKeyword = ref('');
 
 const isLoggedIn = computed(() => userStore.isLoggedIn);
-const username = computed(() => userStore.userInfo?.username || '用户');
-const isAdmin = computed(() => userStore.userInfo?.role === 1);
+const username = computed(() => userStore.user?.username || '用户');
+const userInitial = computed(() => (userStore.user?.username || 'U')[0].toUpperCase());
+const isAdmin = computed(() => userStore.role === 1);
 const cartCount = computed(() => userStore.cartCount || 0);
 
 const handleSearch = () => {
@@ -172,6 +176,27 @@ onMounted(() => {
 
 .user-dropdown {
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff5000, #ff6a33);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.admin-item {
+  color: #ff5000;
+  font-weight: 600;
 }
 
 .cart-badge :deep(.el-badge__content) {

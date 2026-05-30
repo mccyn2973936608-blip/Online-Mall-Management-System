@@ -69,6 +69,12 @@ public class ProductController {
         if (!UserContext.isAdmin()) {
             throw new BusinessException(403, "管理员权限不足");
         }
+        if (product.getCategoryId() != null) {
+            Category category = categoryService.getById(product.getCategoryId());
+            if (category != null) {
+                product.setCategoryName(category.getName());
+            }
+        }
         productService.save(product);
         return Result.success(null);
     }
@@ -77,6 +83,12 @@ public class ProductController {
     public Result<?> update(@Valid @RequestBody Product product) {
         if (!UserContext.isAdmin()) {
             throw new BusinessException(403, "管理员权限不足");
+        }
+        if (product.getCategoryId() != null) {
+            Category category = categoryService.getById(product.getCategoryId());
+            if (category != null) {
+                product.setCategoryName(category.getName());
+            }
         }
         productService.updateById(product);
         return Result.success(null);
